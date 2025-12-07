@@ -40,9 +40,9 @@ namespace TourGuideTest
             TourGuideService = new TourGuideService(tourGuideLogger, GpsUtil, RewardsService, loggerFactory);
         }
 
-        public IRewardCentral RewardCentral { get; set; }
-        public IGpsUtil GpsUtil { get; set; }
-        public IRewardsService RewardsService { get; set; }
-        public ITourGuideService TourGuideService { get; set; }
+        public IRewardCentral RewardCentral { get; set; } = null!;
+        public IGpsUtil GpsUtil { get; set; } = null!;
+        public IRewardsService RewardsService { get; set; } = null!;
+        public ITourGuideService TourGuideService { get; set; } = null!;
     }
 }

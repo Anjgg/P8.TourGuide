@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RewardCentral", "RewardCent
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TourGuideTest", "TourGuideTest\TourGuideTest.csproj", "{690EAAD6-5B9B-4052-8C67-8592AD1CE1AB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "APIs", "APIs", "{35B87FE3-3AF3-4B1A-A311-E81711EBDC09}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{3B57330C-60CE-4175-9ED2-093C1F1F3D91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +48,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2B1DFAF3-2163-47EA-8380-91F75D176A87} = {35B87FE3-3AF3-4B1A-A311-E81711EBDC09}
+		{220062D4-4E9F-420F-9BF8-DE01F879A234} = {3B57330C-60CE-4175-9ED2-093C1F1F3D91}
+		{F4914001-0E70-4407-BC9C-D6430FDAA0B8} = {3B57330C-60CE-4175-9ED2-093C1F1F3D91}
+		{BD57952C-1E33-4043-AB44-6EAB7048464A} = {3B57330C-60CE-4175-9ED2-093C1F1F3D91}
+		{690EAAD6-5B9B-4052-8C67-8592AD1CE1AB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A26CBEC0-6AC7-4E60-B08D-F18852351E62}

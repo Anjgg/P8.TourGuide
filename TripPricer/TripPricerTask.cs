@@ -15,7 +15,7 @@ public class TripPricerTask : Task<List<Provider>>
     private readonly int _nightsStay;
 
     public TripPricerTask(string apiKey, Guid attractionId, int adults, int children, int nightsStay)
-        : base(() => new TripPricer().GetPrice(apiKey, attractionId, adults, children, nightsStay, 5))
+        : base(() => new TripPricer().GetPriceAsync(apiKey, attractionId, adults, children, nightsStay, 5).Result)
     {
         _apiKey = apiKey;
         _attractionId = attractionId;
@@ -26,6 +26,6 @@ public class TripPricerTask : Task<List<Provider>>
     public async Task<List<Provider>> ExecuteAsync()
     {
         var tripPricer = new TripPricer();
-        return await Task.Run(() => tripPricer.GetPrice(_apiKey, _attractionId, _adults, _children, _nightsStay, 5));
+        return await Task.Run(() => tripPricer.GetPriceAsync(_apiKey, _attractionId, _adults, _children, _nightsStay, 5));
     }
 }

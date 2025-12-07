@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace RewardCentral.Helpers;
 
+// No references found to be deleted
 internal static class ThreadLocalRandom
 {
     private static readonly ThreadLocal<Random> threadLocal = new ThreadLocal<Random>(() => new Random());

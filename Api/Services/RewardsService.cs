@@ -1,4 +1,5 @@
 ﻿using GpsUtil.Location;
+using System.Collections.Concurrent;
 using TourGuide.LibrairiesWrappers.Interfaces;
 using TourGuide.Services.Interfaces;
 using TourGuide.Users;
@@ -14,6 +15,11 @@ public class RewardsService : IRewardsService
     private readonly IGpsUtil _gpsUtil;
     private readonly IRewardCentral _rewardsCentral;
     private static int count = 0;
+
+
+    // Per-user locks to prevent concurrent reward calculations for the same user
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _userLocks = new();
+
 
     public RewardsService(IGpsUtil gpsUtil, IRewardCentral rewardCentral)
     {
@@ -32,24 +38,44 @@ public class RewardsService : IRewardsService
         _proximityBuffer = _defaultProximityBuffer;
     }
 
-    public void CalculateRewards(User user)
+    public async Task CalculateRewardsAsync(User user)
     {
         count++;
-        List<VisitedLocation> userLocations = user.VisitedLocations;
-        List<Attraction> attractions = _gpsUtil.GetAttractions();
-
-        foreach (var visitedLocation in userLocations)
+        var semaphore = _userLocks.GetOrAdd(user.UserId, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
         {
-            foreach (var attraction in attractions)
+            List<VisitedLocation> userLocations = user.VisitedLocations.ToList();
+            List<Attraction> attractions = await _gpsUtil.GetAttractionsAsync();
+
+            var rewardsToAdd = new List<UserReward>();
+
+            foreach (var visitedLocation in userLocations)
             {
-                if (!user.UserRewards.Any(r => r.Attraction.AttractionName == attraction.AttractionName))
+                foreach (var attraction in attractions)
                 {
-                    if (NearAttraction(visitedLocation, attraction))
+                    if (!user.UserRewards.Exists(r => r.Attraction.AttractionName == attraction.AttractionName))
                     {
-                        user.AddUserReward(new UserReward(visitedLocation, attraction, GetRewardPoints(attraction, user)));
+                        if (NearAttraction(visitedLocation, attraction))
+                        {
+                            var points = await GetRewardPointsAsync(attraction, user);
+                            rewardsToAdd.Add(new UserReward(visitedLocation, attraction, points));
+                        }
                     }
                 }
             }
+
+            foreach (var reward in rewardsToAdd)
+            {
+                if (!user.UserRewards.Exists(r => r.Attraction.AttractionName == reward.Attraction.AttractionName))
+                {
+                    user.AddUserReward(reward);
+                }
+            }
+        }
+        finally
+        {
+            semaphore.Release();
         }
     }
 
@@ -64,9 +90,9 @@ public class RewardsService : IRewardsService
         return GetDistance(attraction, visitedLocation.Location) <= _proximityBuffer;
     }
 
-    private int GetRewardPoints(Attraction attraction, User user)
+    public async Task<int> GetRewardPointsAsync(Attraction attraction, User user)
     {
-        return _rewardsCentral.GetAttractionRewardPoints(attraction.AttractionId, user.UserId);
+        return await _rewardsCentral.GetAttractionRewardPointsAsync(attraction.AttractionId, user.UserId);
     }
 
     public double GetDistance(Locations loc1, Locations loc2)
