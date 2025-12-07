@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TourGuide.Services.Interfaces;
 using TourGuide.Users;
+using TourGuide.Utilities;
 using TripPricer;
 
 namespace TourGuide.Controllers;
@@ -18,9 +19,20 @@ public class TourGuideController : ControllerBase
     }
 
     [HttpGet("getLocation")]
-    public ActionResult<VisitedLocation> GetLocation([FromQuery] string userName)
+    public async Task<ActionResult<VisitedLocation>> GetLocation([FromQuery] string userName)
     {
-        var location = _tourGuideService.GetUserLocation(GetUser(userName));
+        var user = await GetUserAsync(userName);
+        if (user == null) 
+        { 
+            return NotFound($"User with username '{userName}' not found.");
+        }
+
+        var location = await _tourGuideService.GetUserLocationAsync(user);
+        if (location == null) 
+        {
+            return NotFound($"Location for user '{userName}' not found.");
+        }
+
         return Ok(location);
     }
 
@@ -34,29 +46,53 @@ public class TourGuideController : ControllerBase
     // The reward points for visiting each Attraction.
     //    Note: Attraction reward points can be gathered from RewardsCentral
     [HttpGet("getNearbyAttractions")]
-    public ActionResult<List<Attraction>> GetNearbyAttractions([FromQuery] string userName)
+    public async Task<ActionResult<List<NearAttraction>>> GetNearbyAttractions([FromQuery] string userName)
     {
-        var visitedLocation = _tourGuideService.GetUserLocation(GetUser(userName));
-        var attractions = _tourGuideService.GetNearByAttractions(visitedLocation);
+        var user = await GetUserAsync(userName);
+        if (user == null)
+        {
+            return NotFound($"User with username '{userName}' not found.");
+        }
+        
+        var attractions = await _tourGuideService.GetFiveNearbyAttractionsAsync(user);
+        if (attractions == null)
+        {
+            return Problem($"Nearby attractions for user '{userName}' not found.");
+        }
+
         return Ok(attractions);
     }
 
     [HttpGet("getRewards")]
-    public ActionResult<List<UserReward>> GetRewards([FromQuery] string userName)
+    public async Task<ActionResult<List<UserReward>>> GetRewards([FromQuery] string userName)
     {
-        var rewards = _tourGuideService.GetUserRewards(GetUser(userName));
+        var user = await GetUserAsync(userName);
+        if (user == null)
+        {
+            return NotFound($"User with username '{userName}' not found.");
+        }
+
+        var rewards = _tourGuideService.GetUserRewards(user);
+
         return Ok(rewards);
     }
 
     [HttpGet("getTripDeals")]
-    public ActionResult<List<Provider>> GetTripDeals([FromQuery] string userName)
+    public async Task<ActionResult<List<Provider>>> GetTripDeals([FromQuery] string userName)
     {
-        var deals = _tourGuideService.GetTripDeals(GetUser(userName));
+        var user = await GetUserAsync(userName);
+        if (user == null)
+        {
+            return NotFound($"User with username '{userName}' not found.");
+        }
+
+        var deals = await _tourGuideService.GetTripDealsAsync(user);
+
         return Ok(deals);
     }
 
-    private User GetUser(string userName)
+    private async Task<User?> GetUserAsync(string userName)
     {
-        return _tourGuideService.GetUser(userName);
+        return await _tourGuideService.GetUserAsync(userName);
     }
 }

@@ -20,24 +20,24 @@ namespace TourGuideTest
             _fixture = fixture;
         }
 
-        public void Dispose()
+        private void Dispose()
         {
             _fixture.Cleanup();
         }
 
         [Fact]
-        public void GetUserLocation()
+        public async Task GetUserLocation()
         {
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
-            var visitedLocation = _fixture.TourGuideService.TrackUserLocation(user);
+            var visitedLocation = await _fixture.TourGuideService.TrackUserLocationAsync(user);
             _fixture.TourGuideService.Tracker.StopTracking();
 
             Assert.Equal(user.UserId, visitedLocation.UserId);
         }
 
         [Fact]
-        public void AddUser()
+        public async Task AddUser()
         {
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
@@ -46,8 +46,8 @@ namespace TourGuideTest
             _fixture.TourGuideService.AddUser(user);
             _fixture.TourGuideService.AddUser(user2);
 
-            var retrievedUser = _fixture.TourGuideService.GetUser(user.UserName);
-            var retrievedUser2 = _fixture.TourGuideService.GetUser(user2.UserName);
+            var retrievedUser = await _fixture.TourGuideService.GetUserAsync(user.UserName);
+            var retrievedUser2 = await _fixture.TourGuideService.GetUserAsync(user2.UserName);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
@@ -56,7 +56,7 @@ namespace TourGuideTest
         }
 
         [Fact]
-        public void GetAllUsers()
+        public async Task GetAllUsers()
         {
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
@@ -65,7 +65,7 @@ namespace TourGuideTest
             _fixture.TourGuideService.AddUser(user);
             _fixture.TourGuideService.AddUser(user2);
 
-            List<User> allUsers = _fixture.TourGuideService.GetAllUsers();
+            List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
@@ -74,25 +74,24 @@ namespace TourGuideTest
         }
 
         [Fact]
-        public void TrackUser()
+        public async Task TrackUser()
         {
             _fixture.Initialize();
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
-            var visitedLocation = _fixture.TourGuideService.TrackUserLocation(user);
+            var visitedLocation = await _fixture.TourGuideService.TrackUserLocationAsync(user);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
             Assert.Equal(user.UserId, visitedLocation.UserId);
         }
 
-        [Fact(Skip = "Not yet implemented")]
-        public void GetNearbyAttractions()
+        [Fact]
+        public async Task GetNearbyAttractions()
         {
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
-            var visitedLocation = _fixture.TourGuideService.TrackUserLocation(user);
 
-            List<Attraction> attractions = _fixture.TourGuideService.GetNearByAttractions(visitedLocation);
+            List<NearAttraction> attractions = await _fixture.TourGuideService.GetFiveNearbyAttractionsAsync(user);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
@@ -100,11 +99,11 @@ namespace TourGuideTest
         }
 
         [Fact]
-        public void GetTripDeals()
+        public async Task GetTripDeals()
         {
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
-            List<Provider> providers = _fixture.TourGuideService.GetTripDeals(user);
+            List<Provider> providers = await _fixture.TourGuideService.GetTripDealsAsync(user);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
