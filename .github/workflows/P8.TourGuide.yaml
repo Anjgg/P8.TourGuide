@@ -31,19 +31,16 @@ jobs:
         with:
           dotnet-version: 7.0
 
-      - name: Clean previous build
-        run: dotnet clean --configuration Release
-
       - name: Restore dependencies
         run: dotnet restore 
 
-      - name: Build solution
+      - name: Build 
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test project
+      - name: Test 
         run: dotnet test --configuration Release --no-build --no-restore --verbosity normal
       
-      - name: Publish project
+      - name: Publish 
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
         run: dotnet publish --configuration Release --output ./publish --no-build --no-restore
 
