@@ -92,13 +92,12 @@ public class TourGuideService : ITourGuideService
         return visitedLocation;
     }
 
-    public async Task<List<NearAttraction>> GetFiveNearbyAttractionsAsync(User user)
+    public async Task<Dictionary<int, NearAttraction>> GetFiveNearbyAttractionsAsync(User user)
     {
         var attractions = await _gpsUtil.GetAttractionsAsync();
         var userLocation = await GetUserLocationAsync(user);
         var userPostion = userLocation.Location;
         var nearAttractions = new List<NearAttraction>();
-
 
         foreach (var attraction in attractions)
         {
@@ -117,7 +116,8 @@ public class TourGuideService : ITourGuideService
         }
 
         nearAttractions = nearAttractions.OrderBy(n => n.Distance).Take(5).ToList();
-        return nearAttractions;
+       
+        return nearAttractions.ToDictionary(n => nearAttractions.IndexOf(n), n => n);
     }
 
     private void AddShutDownHook()
