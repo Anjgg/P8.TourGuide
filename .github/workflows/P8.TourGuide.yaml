@@ -16,6 +16,12 @@ on:
       - "**/*.gitignore"
       - "**/*.gitattributes"
   workflow_dispatch:
+    inputs:
+      forced_publish:
+        description: 'Force publish of artifact'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-test:
@@ -41,30 +47,12 @@ jobs:
         run: dotnet test --configuration Release --no-build --no-restore --verbosity normal
       
       - name: Publish 
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' || inputs.publish }}
         run: dotnet publish --configuration Release --output ./publish --no-build --no-restore
 
       - name: Upload build artifacts
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' || inputs.publish }}
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: ./publish
-  
-  package:
-    name: Package ZIP
-    runs-on: ubuntu-latest
-    needs: build-test
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
-    
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ./publish
-
-      - name: Create ZIP
-        run: |
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          zip -r published-app-$TIMESTAMP.zip ./publish  
