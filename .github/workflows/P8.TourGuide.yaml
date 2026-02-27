@@ -16,6 +16,12 @@ on:
       - "**/*.gitignore"
       - "**/*.gitattributes"
   workflow_dispatch:
+    inputs:
+      forced_publish:
+        description: 'Force publish of artifact'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-test:
@@ -23,6 +29,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Initialize
+        run: |
+            TIME=$(date -u +"%Y-%m-%dT%H:%M")
+            echo "Current time: $TIME"
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -30,6 +41,12 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 7.0
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj') }}
 
       - name: Restore dependencies
         run: dotnet restore 
@@ -41,30 +58,13 @@ jobs:
         run: dotnet test --configuration Release --no-build --no-restore --verbosity normal
       
       - name: Publish 
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')) || forced_publish
         run: dotnet publish --configuration Release --output ./publish --no-build --no-restore
 
       - name: Upload build artifacts
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')) || forced_publish
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-$TIME
           path: ./publish
-  
-  package:
-    name: Package ZIP
-    runs-on: ubuntu-latest
-    needs: build-test
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')
-    
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ./publish
-
-      - name: Create ZIP
-        run: |
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          zip -r published-app-$TIMESTAMP.zip ./publish  
+          retention-days: 1
