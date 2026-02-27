@@ -11,7 +11,7 @@ namespace TourGuide.Services.Interfaces
 
         void AddUser(User user);
         Task<List<User>> GetAllUsersAsync();
-        Task<List<NearAttraction>> GetFiveNearbyAttractionsAsync(User user);
+        Task<Dictionary<int, NearAttraction>> GetFiveNearbyAttractionsAsync(User user);
         Task<List<Provider>> GetTripDealsAsync(User user);
         Task<User?> GetUserAsync(string userName);
         Task<VisitedLocation> GetUserLocationAsync(User user);
