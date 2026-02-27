@@ -29,11 +29,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Initialize
-        run: |
-            TIME=$(date -u +"%Y-%m-%dT%H:%M")
-            echo "Current time: $TIME"
-
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -65,6 +60,6 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' || inputs.publish }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts-$TIME
+          name: build-artifacts-${{ github.run_number }}
           path: ./publish
           retention-days: 1
