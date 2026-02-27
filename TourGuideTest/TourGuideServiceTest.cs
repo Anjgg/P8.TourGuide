@@ -91,7 +91,7 @@ namespace TourGuideTest
             _fixture.Initialize(0);
             var user = new User(Guid.NewGuid(), "jon", "000", "jon@tourGuide.com");
 
-            List<NearAttraction> attractions = await _fixture.TourGuideService.GetFiveNearbyAttractionsAsync(user);
+            Dictionary<int, NearAttraction> attractions = await _fixture.TourGuideService.GetFiveNearbyAttractionsAsync(user);
 
             _fixture.TourGuideService.Tracker.StopTracking();
 
