@@ -58,11 +58,11 @@ jobs:
         run: dotnet test --configuration Release --no-build --no-restore --verbosity normal
       
       - name: Publish 
-        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')) || forced_publish
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' || inputs.publish }}
         run: dotnet publish --configuration Release --output ./publish --no-build --no-restore
 
       - name: Upload build artifacts
-        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/master')) || forced_publish
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' || inputs.publish }}
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts-$TIME
