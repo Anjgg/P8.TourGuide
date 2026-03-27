@@ -23,9 +23,10 @@ public class User
         EmailAddress = emailAddress;
     }
 
-    public void AddToVisitedLocations(VisitedLocation visitedLocation)
+    public Task AddToVisitedLocations(VisitedLocation visitedLocation)
     {
         VisitedLocations.Add(visitedLocation);
+        return Task.CompletedTask;
     }
 
     public void ClearVisitedLocations()

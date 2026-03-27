@@ -78,17 +78,17 @@ namespace TourGuideTest
             //On peut ici augmenter le nombre d'utilisateurs pour tester les performances
             _fixture.Initialize(10);
 
-            List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
+            
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
             var attractions = await _fixture.GpsUtil.GetAttractionsAsync();
             var attraction = attractions[0];
-            
-            allUsers.ForEach(u => u.AddToVisitedLocations(new VisitedLocation(u.UserId, attraction, DateTime.Now)));
+            List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
+            await Task.WhenAll(allUsers.Select(async u => await u.AddToVisitedLocations(new VisitedLocation(u.UserId, attraction, DateTime.Now))));
 
-            allUsers.ForEach(u => _fixture.RewardsService.CalculateRewardsAsync(u));
+            await Task.WhenAll(allUsers.Select(async u => await _fixture.RewardsService.CalculateRewardsAsync(u)));
 
             foreach (var user in allUsers)
             {
