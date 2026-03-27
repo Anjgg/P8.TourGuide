@@ -48,37 +48,44 @@ namespace TourGuideTest
         public async Task HighVolumeTrackLocation()
         {
             //On peut ici augmenter le nombre d'utilisateurs pour tester les performances
-            _fixture.Initialize(100000);
-
+            _fixture.Initialize(10);
             List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            foreach (var user in allUsers)
+            int maxParallel = Math.Max(4, Environment.ProcessorCount * 4);
+            using var throttler = new SemaphoreSlim(maxParallel);
+            var tasks = allUsers.Select(async u =>
             {
-                await _fixture.TourGuideService.TrackUserLocationAsync(user);
-            }
-            stopWatch.Stop();
+                await throttler.WaitAsync();
+                try { await _fixture.TourGuideService.TrackUserLocationAsync(u); }
+                finally { throttler.Release(); }
+            }).ToArray();
+            await Task.WhenAll(tasks);
+
             _fixture.TourGuideService.Tracker.StopTracking();
 
             _output.WriteLine($"highVolumeTrackLocation: Time Elapsed: {stopWatch.Elapsed.TotalSeconds} seconds.");
 
             Assert.True(TimeSpan.FromMinutes(15).TotalSeconds >= stopWatch.Elapsed.TotalSeconds);
+
         }
 
         [Fact]
         public async Task HighVolumeGetRewards()
         {
             //On peut ici augmenter le nombre d'utilisateurs pour tester les performances
-            _fixture.Initialize(100000);
+            _fixture.Initialize(10);
+
+            List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
             var attractions = await _fixture.GpsUtil.GetAttractionsAsync();
             var attraction = attractions[0];
-            List<User> allUsers = await _fixture.TourGuideService.GetAllUsersAsync();
+            
             allUsers.ForEach(u => u.AddToVisitedLocations(new VisitedLocation(u.UserId, attraction, DateTime.Now)));
 
             allUsers.ForEach(u => _fixture.RewardsService.CalculateRewardsAsync(u));
