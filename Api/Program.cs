@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRewardsService, RewardsService>();
 builder.Services.AddScoped<ITourGuideService, TourGuideService>();
-builder.Services.AddScoped<IGpsUtil, GpsUtilWrapper>();
+builder.Services.AddTransient<IGpsUtil, GpsUtilWrapper>();
 builder.Services.AddScoped<IRewardCentral, RewardCentralWrapper>();
 
 var app = builder.Build();

@@ -10,22 +10,41 @@ namespace GpsUtil;
 
 public class GpsUtil
 {
-    public Task<VisitedLocation> GetUserLocationAsync(Guid userId)
+    private static readonly SemaphoreSlim ratelimiter = new(1000, 1000);
+
+    public async Task<VisitedLocation> GetUserLocationAsync(Guid userId)
     {
-        double longitude = ThreadLocalRandom.NextDouble(-180.0, 180.0);
-        longitude = Math.Round(longitude, 6);
+        await ratelimiter.WaitAsync().ConfigureAwait(false);
 
-        double latitude = ThreadLocalRandom.NextDouble(-90, 90);
-        latitude = Math.Round(latitude, 6);
+        try
+        {
+            await SleepAsync().ConfigureAwait(false);
 
-        VisitedLocation visitedLocation = new(userId, new Locations(latitude, longitude), DateTime.UtcNow);
+            double longitude = ThreadLocalRandom.NextDouble(-180.0, 180.0);
+            longitude = Math.Round(longitude, 6);
 
-        return Task.FromResult(visitedLocation);
+            double latitude = ThreadLocalRandom.NextDouble(-90, 90);
+            latitude = Math.Round(latitude, 6);
+
+            VisitedLocation visitedLocation = new(userId, new Locations(latitude, longitude), DateTime.UtcNow);
+
+            return visitedLocation;
+        }
+        finally
+        {
+            ratelimiter.Release();
+        }
     }
 
-    public Task<List<Attraction>> GetAttractionsAsync()
+    public async Task<List<Attraction>> GetAttractionsAsync()
     {
-        List<Attraction> attractions = new()
+        await ratelimiter.WaitAsync();
+
+        try
+        {
+            await SleepLighterAsync().ConfigureAwait(false);
+
+            List<Attraction> attractions = new()
         {
             new Attraction("Disneyland", "Anaheim", "CA", 33.817595, -117.922008),
             new Attraction("Jackson Hole", "Jackson Hole", "WY", 43.582767, -110.821999),
@@ -55,6 +74,22 @@ public class GpsUtil
             new Attraction("Cinderella Castle", "Orlando", "FL", 28.419411, -81.5812)
         };
 
-            return Task.FromResult(attractions);
+            return attractions;
+        }
+        finally
+        {
+            ratelimiter.Release();
+        }
+    }
+
+    private static Task SleepAsync()
+    {
+        int delay = ThreadLocalRandom.Current.Next(30, 100);
+        return Task.Delay(delay);
+    }
+
+    private static Task SleepLighterAsync()
+    {
+        return Task.Delay(10);
     }
 }
